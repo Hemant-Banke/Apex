@@ -1,59 +1,55 @@
 "use client"
 
-import * as React from "react"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+    Building2, Bitcoin, Landmark, BadgeIndianRupee,
+    Globe, PiggyBank, Briefcase, FileBadge,
+    Wallet, CreditCard, Banknote, Landmark as Bank
+} from "lucide-react"
+import { useState } from "react"
 import { AddInvestmentForm } from "./AddInvestmentForm"
 import { AssetType } from "@/types"
-import { Building2, Bitcoin, Landmark, BadgeIndianRupee } from "lucide-react"
 
 interface AddInvestmentDialogProps {
-    children: React.ReactNode
-    defaultType?: AssetType
+    children: React.ReactNode;
+    defaultType?: AssetType; // Optional prop to pre-select a type
 }
 
-const assetTypes: { type: AssetType; label: string; desc: string; icon: any }[] = [
-    { type: 'STOCK', label: 'Stocks', desc: 'Direct Equity', icon: Building2 },
-    { type: 'MF', label: 'Mutual Funds', desc: 'SIPs & Lumpsum', icon: Landmark },
-    { type: 'GOLD', label: 'Gold', desc: 'Digital & Physical', icon: BadgeIndianRupee },
-    { type: 'CRYPTO', label: 'Crypto', desc: 'Coins & Tokens', icon: Bitcoin },
-];
+const assetTypes: { type: AssetType; label: string; icon: any }[] = [
+    { type: 'STOCK', label: 'Stocks', icon: Building2 },
+    { type: 'MF', label: 'Mutual Funds', icon: Landmark },
+    { type: 'FOREIGN_EQUITY', label: 'Foreign Equity', icon: Globe },
+    { type: 'GOLD', label: 'Gold / Commodities', icon: BadgeIndianRupee },
+    { type: 'CRYPTO', label: 'Crypto', icon: Bitcoin },
+    { type: 'FD', label: 'Fixed Deposit', icon: Banknote },
+    { type: 'BOND', label: 'Bonds', icon: FileBadge },
+    { type: 'EPF', label: 'EPF / PPF', icon: PiggyBank },
+    { type: 'REAL_ESTATE', label: 'Real Estate', icon: Building2 },
+    { type: 'ESOP', label: 'ESOPs / RSUs', icon: Briefcase },
+]
 
 export function AddInvestmentDialog({ children, defaultType }: AddInvestmentDialogProps) {
     const [open, setOpen] = useState(false)
     const [step, setStep] = useState<'TYPE_SELECTION' | 'DETAILS'>('TYPE_SELECTION')
-    const [selectedType, setSelectedType] = useState<AssetType | null>(null)
+    const [selectedType, setSelectedType] = useState<AssetType | null>(defaultType || null)
 
-    // Initialize with defaultType if provided
-    React.useEffect(() => {
-        if (defaultType) {
-            setSelectedType(defaultType);
-            setStep('DETAILS');
-        }
-    }, [defaultType]);
-
+    // Reset or Initialize based on props/state
     const handleTypeSelect = (type: AssetType) => {
         setSelectedType(type)
-        setStep('DETAILS')
+        // Add a small delay for better UX
+        setTimeout(() => setStep('DETAILS'), 100)
     }
 
-    const reset = () => {
-        setOpen(false)
-        setTimeout(() => {
-            setStep('TYPE_SELECTION')
-            setSelectedType(null)
-        }, 300)
+    const handleBack = () => {
+        setStep('TYPE_SELECTION')
+        setSelectedType(null)
     }
 
     const handleOpenChange = (open: boolean) => {
@@ -69,43 +65,46 @@ export function AddInvestmentDialog({ children, defaultType }: AddInvestmentDial
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-[#09090b] border border-[#27272a] shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] p-0 gap-0 overflow-hidden">
+            <DialogContent className="sm:max-w-[600px] bg-[#09090b] border border-[#27272a] shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] p-0 gap-0 overflow-hidden">
                 <DialogHeader className="p-6 border-b border-[#27272a] bg-[#09090b]">
-                    <DialogTitle className="text-xl font-serif font-bold">
-                        {step === 'TYPE_SELECTION' ? 'Select Asset Type' : `Add ${selectedType} Investment`}
+                    <DialogTitle className="text-xl font-serif font-bold tracking-tight">
+                        {step === 'TYPE_SELECTION' ? 'Select Asset Type' : `Add ${assetTypes.find(t => t.type === selectedType)?.label}`}
                     </DialogTitle>
-                    <DialogDescription className="text-xs font-mono uppercase tracking-widest">
-                        {step === 'TYPE_SELECTION' ? 'Choose what you want to track' : 'Enter transaction details'}
-                    </DialogDescription>
                 </DialogHeader>
 
-                <div className="p-6 bg-[#09090b]">
-                    {step === 'TYPE_SELECTION' && (
-                        <div className="grid grid-cols-1 gap-4">
+                <div className="p-6 max-h-[70vh] overflow-y-auto">
+                    {step === 'TYPE_SELECTION' ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {assetTypes.map((item) => (
                                 <button
                                     key={item.type}
                                     onClick={() => handleTypeSelect(item.type)}
-                                    className="flex items-center gap-4 p-4 border border-[#27272a] bg-[#18181b] hover:bg-[#27272a] hover:border-[#27272a] transition-all text-left shadow-[2px_2px_0px_0px_rgba(255,255,255,0.05)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] group"
+                                    className="flex flex-col items-center justify-center gap-3 p-4 border border-[#27272a] bg-[#18181b] hover:bg-[#27272a] hover:border-[#27272a] transition-all text-center shadow-[2px_2px_0px_0px_rgba(255,255,255,0.05)] hover:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] group h-32"
                                 >
-                                    <div className="h-10 w-10 flex items-center justify-center bg-[#09090b] border border-[#27272a] text-muted-foreground group-hover:bg-primary group-hover:border-primary group-hover:text-black transition-all">
+                                    <div className="h-10 w-10 flex items-center justify-center bg-[#09090b] border border-[#27272a] text-muted-foreground group-hover:bg-primary group-hover:border-primary group-hover:text-black transition-all rounded-full">
                                         <item.icon className="h-5 w-5" />
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold font-serif text-foreground group-hover:text-primary transition-colors">{item.label}</h3>
-                                        <p className="text-xs text-muted-foreground font-mono">{item.desc}</p>
-                                    </div>
+                                    <span className="font-bold text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                                        {item.label}
+                                    </span>
                                 </button>
                             ))}
                         </div>
-                    )}
+                    ) : (
+                        <div className="space-y-6">
+                            {/* Back Button for UX */}
+                            <button onClick={handleBack} className="text-xs text-muted-foreground hover:text-primary underline mb-4">
+                                ← Change Asset Type
+                            </button>
 
-                    {step === 'DETAILS' && selectedType && (
-                        <AddInvestmentForm
-                            type={selectedType}
-                            onSuccess={reset}
-                            onCancel={() => setStep('TYPE_SELECTION')}
-                        />
+                            {selectedType && (
+                                <AddInvestmentForm
+                                    type={selectedType}
+                                    onSuccess={() => setOpen(false)}
+                                    onCancel={() => setOpen(false)}
+                                />
+                            )}
+                        </div>
                     )}
                 </div>
             </DialogContent>

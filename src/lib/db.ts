@@ -8,7 +8,7 @@ export class PortfolioDatabase extends Dexie {
     constructor() {
         super('PortfolioTrackerDB');
         this.version(1).stores({
-            assets: '++id, symbol, type',
+            assets: '++id, symbol, type, quantity',
             transactions: '++id, assetId, date, type'
         });
     }

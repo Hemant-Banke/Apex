@@ -1,4 +1,4 @@
-export type AssetType = 'STOCK' | 'MF' | 'GOLD' | 'CRYPTO' | 'EPF' | 'PPF' | 'REAL_ESTATE' | 'CASH';
+export type AssetType = 'STOCK' | 'MF' | 'GOLD' | 'CRYPTO' | 'REAL_ESTATE' | 'FOREIGN_EQUITY' | 'FD' | 'EPF' | 'BOND' | 'ESOP';
 
 export interface Asset {
   id?: number;
@@ -6,6 +6,7 @@ export interface Asset {
   name: string;
   type: AssetType;
   currentPrice?: number;
+  quantity?: number;
   lastUpdated?: Date;
 }
 

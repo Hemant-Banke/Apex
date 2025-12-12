@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowUpRight, ArrowDownRight, Plus, Building2, Bitcoin, Landmark, BadgeIndianRupee, Newspaper, ExternalLink } from "lucide-react"
+import { ArrowUpRight, ArrowDownRight, Plus, Building2, Bitcoin, Landmark, BadgeIndianRupee, Newspaper, ExternalLink, Globe, PiggyBank, Briefcase, FileBadge, Wallet, CreditCard, Banknote, Landmark as Bank } from "lucide-react"
 import { useLiveQuery } from "dexie-react-hooks"
 import { db } from "@/lib/db"
 import { Button } from "@/components/ui/button"
@@ -9,13 +9,18 @@ import { AddInvestmentDialog } from "@/components/forms/AddInvestmentDialog"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts"
 import { useState } from "react"
 
-// Map asset types to Lucide Icons
 const getAssetIcon = (type: string) => {
   switch (type) {
     case 'STOCK': return Building2;
     case 'CRYPTO': return Bitcoin;
     case 'MF': return Landmark;
     case 'GOLD': return BadgeIndianRupee;
+    case 'FOREIGN_EQUITY': return Globe;
+    case 'FD': return Banknote;
+    case 'EPF': return PiggyBank;
+    case 'BOND': return FileBadge;
+    case 'ESOP': return Briefcase;
+    case 'REAL_ESTATE': return Building2;
     default: return BadgeIndianRupee;
   }
 }
@@ -101,7 +106,7 @@ export default function DashboardPage() {
   const assets = useLiveQuery(() => db.assets.toArray());
   const transactions = useLiveQuery(() => db.transactions.toArray());
 
-  const totalValue = assets?.reduce((acc, asset) => acc + (asset.currentPrice || 0), 0) || 0;
+  const totalValue = assets?.reduce((acc, asset) => acc + ((asset.currentPrice || 0) * (asset.quantity || 1)), 0) || 0;
 
   // Categorize assets
   const categories = {
@@ -323,8 +328,10 @@ export default function DashboardPage() {
                     <Icon className="h-6 w-6" />
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold font-mono">₹{(asset.currentPrice || 0).toLocaleString('en-IN')}</p>
-                    <p className="text-xs text-primary font-mono bg-primary/10 px-1">+12.5%</p>
+                    <p className="text-lg font-bold font-mono">₹{((asset.currentPrice || 0) * (asset.quantity || 1)).toLocaleString('en-IN')}</p>
+                    <div className="inline-flex items-center font-mono text-primary bg-primary/10 border border-primary/20 px-2 py-1 text-xs mt-1">
+                      <ArrowUpRight className="h-3 w-3 mr-1" /> +12.5%
+                    </div>
                   </div>
                 </div>
                 <div>
