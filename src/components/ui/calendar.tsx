@@ -15,7 +15,7 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-  captionLayout = "label",
+  captionLayout = "dropdown", // Changed to valid type "dropdown"
   buttonVariant = "ghost",
   formatters,
   components,
@@ -34,7 +34,9 @@ function Calendar({
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
       )}
-      captionLayout={captionLayout}
+      captionLayout={captionLayout} // Propagated here
+      startMonth={new Date(2000, 0)} // Allow going back to 2000
+      endMonth={new Date(2030, 11)}
       formatters={{
         formatMonthDropdown: (date) =>
           date.toLocaleString("default", { month: "short" }),
@@ -74,7 +76,7 @@ function Calendar({
           defaultClassNames.dropdown_root
         ),
         dropdown: cn(
-          "absolute bg-popover inset-0 opacity-0",
+          "absolute bg-popover inset-0 opacity-0 cursor-pointer z-10 w-full h-full", // Improved clickability
           defaultClassNames.dropdown
         ),
         caption_label: cn(

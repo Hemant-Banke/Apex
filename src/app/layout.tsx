@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Playfair_Display, Lato } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { TopNav } from "@/components/layout/TopNav";
 
-const inter = Inter({ subsets: ["latin"] });
+const playfair = Playfair_Display({ subsets: ["latin"], variable: '--font-playfair' });
+const lato = Lato({ weight: ['400', '700', '900'], subsets: ["latin"], variable: '--font-lato' });
 
 export const metadata: Metadata = {
   title: "Apex",
@@ -18,17 +18,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={inter.className}>
-        <div className="min-h-screen bg-background font-sans antialiased">
-          <TopNav />
-          <div className="flex">
-            <div className="hidden md:block w-64 shrink-0">
-              <Sidebar className="fixed top-16 bottom-0 w-64" />
-            </div>
-            <main className="flex-1 container py-6 md:px-8 max-w-7xl mx-auto">
+      <body className={`${playfair.variable} ${lato.variable} font-sans`}>
+        <div className="flex min-h-screen font-sans antialiased">
+          <Sidebar className="hidden md:flex fixed inset-y-0 w-[240px]" />
+          <main className="flex-1 md:pl-[240px]">
+            {/* Mobile Header placeholder - handled in Sidebar or Page */}
+            <div className="container mx-auto p-4 md:p-8 max-w-7xl">
               {children}
-            </main>
-          </div>
+            </div>
+          </main>
         </div>
       </body>
     </html>

@@ -2,16 +2,8 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
-import { AddAssetForm } from "@/components/forms/AddAssetForm";
+import { AddInvestmentDialog } from "@/components/forms/AddInvestmentDialog";
 import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
 import {
     Table,
     TableBody,
@@ -24,10 +16,10 @@ import { Plus } from "lucide-react";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AssetType } from "@/types";
 
 function AssetsContent() {
     const assets = useLiveQuery(() => db.assets.toArray());
-    const [open, setOpen] = useState(false);
     const searchParams = useSearchParams();
     const typeFilter = searchParams.get("type");
 
@@ -43,22 +35,11 @@ function AssetsContent() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-                <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                            <Plus className="mr-2 h-4 w-4" /> Add Investment
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Add New Investment</DialogTitle>
-                            <DialogDescription>
-                                Add a new {typeFilter?.toLowerCase() || "asset"} to your portfolio.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <AddAssetForm onSuccess={() => setOpen(false)} />
-                    </DialogContent>
-                </Dialog>
+                <AddInvestmentDialog defaultType={typeFilter as AssetType}>
+                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                        <Plus className="mr-2 h-4 w-4" /> Add Investment
+                    </Button>
+                </AddInvestmentDialog>
             </div>
 
             <Card>
