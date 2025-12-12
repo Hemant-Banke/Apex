@@ -27,25 +27,73 @@ const newsItems = [
   { id: 3, title: "Gold prices stabilize after weekly rally", source: "Reuters", time: "5h ago", url: "#" },
 ]
 
-// Dummy Chart Data (Generated for smoothness)
-const generateData = (points: number, startVal: number) => {
+// --- Chart Data Generation Logic ---
+const generateTimeframeData = (timeframe: '1D' | '1W' | '1M' | '1Y' | 'ALL') => {
+  const now = new Date();
   const data = [];
-  let current = startVal;
+  let points = 0;
+  let interval = 0; // ms
+  let startValue = 0;
+
+  switch (timeframe) {
+    case '1D':
+      points = 96; // 15 min intervals for 24h
+      interval = 15 * 60 * 1000;
+      startValue = 85000;
+      break;
+    case '1W':
+      points = 168; // Hourly for 7 days
+      interval = 60 * 60 * 1000;
+      startValue = 82000;
+      break;
+    case '1M':
+      points = 120; // 6-hour intervals for 30 days
+      interval = 6 * 60 * 60 * 1000;
+      startValue = 80000;
+      break;
+    case '1Y':
+      points = 365; // Daily
+      interval = 24 * 60 * 60 * 1000;
+      startValue = 40000;
+      break;
+    case 'ALL':
+      points = 260; // Weekly for ~5 years
+      interval = 7 * 24 * 60 * 60 * 1000;
+      startValue = 10000;
+      break;
+  }
+
+  // Generate data working *backwards* from now
+  let currentValue = startValue * (1 + (Math.random() * 0.2)); // Slight randomization of start
+
+  // We want to generate forward from a start date
+  const startTime = now.getTime() - (points * interval);
+
+  // Create a smoother random walk
+  currentValue = startValue;
+
   for (let i = 0; i < points; i++) {
-    current = current * (1 + (Math.random() * 0.04 - 0.015)); // Random walk
+    const time = startTime + (i * interval);
+    const date = new Date(time);
+
+    // Random walk with trend
+    const change = (Math.random() - 0.48) * 0.02; // Slight upward trend bias
+    currentValue = currentValue * (1 + change);
+
     data.push({
-      date: i,
-      value: current
+      date: time, // numeric timestamp for Recharts
+      value: currentValue,
+      dateObj: date
     });
   }
   return data;
 }
 
-const chartData1D = generateData(24, 85000);
-const chartData1W = generateData(7, 82000);
-const chartData1M = generateData(30, 80000);
-const chartData1Y = generateData(12, 40000);
-const chartDataAll = generateData(50, 10000);
+const chartData1D = generateTimeframeData('1D');
+const chartData1W = generateTimeframeData('1W');
+const chartData1M = generateTimeframeData('1M');
+const chartData1Y = generateTimeframeData('1Y');
+const chartDataAll = generateTimeframeData('ALL');
 
 export default function DashboardPage() {
   const [timeframe, setTimeframe] = useState<'1D' | '1W' | '1M' | '1Y' | 'ALL'>('1Y');
@@ -82,6 +130,22 @@ export default function DashboardPage() {
     }
   }
 
+  // --- Dynamic Axis Formatter ---
+  const formatXAxis = (tickItem: number) => {
+    const date = new Date(tickItem);
+    switch (timeframe) {
+      case '1D': return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }); // 10 AM
+      case '1W': return date.toLocaleDateString('en-US', { weekday: 'short' }); // Mon
+      case '1M': return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }); // Oct 12
+      case '1Y': return date.toLocaleDateString('en-US', { month: 'short' }); // Jan
+      case 'ALL': return date.getFullYear().toString(); // 2023
+    }
+  }
+
+  // Calculate ticks to control density (optional, but effectively handled by minTickGap usually, 
+  // but explicit ticks ensure standard "Hourly/Daily" feel)
+  // For simplicity, we'll let Recharts handle ticks with the custom formatter, but setting 'minTickGap' is key.
+
   return (
     <div className="space-y-12 md:pt-0 pt-16 pb-12">
 
@@ -106,7 +170,7 @@ export default function DashboardPage() {
         </AddInvestmentDialog>
       </div>
 
-      {/* Net Worth Section (No Card, Minimal) */}
+      {/* Net Worth Section */}
       <div>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div>
@@ -137,7 +201,6 @@ export default function DashboardPage() {
         </div>
 
         <div className="h-[350px] w-full relative border-b border-[#27272a]">
-          {/* Chart Grid Only - No Background Card */}
           <div className="h-full w-full relative z-10 pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={getCurrentChartData()} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
@@ -150,22 +213,34 @@ export default function DashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} opacity={0.5} />
                 <XAxis
                   dataKey="date"
+                  type="number"
+                  domain={['dataMin', 'dataMax']}
+                  tickFormatter={formatXAxis}
+                  tick={{ fill: '#71717a', fontSize: 10, fontFamily: 'var(--font-mono)' }}
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#71717a', fontSize: 10 }}
-                  tickFormatter={(value) => {
-                    const date = new Date(value);
-                    return date.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
-                  }}
+                  minTickGap={30} // Ensures labels don't overlap, effectively managing the "tick density"
+                  interval="preserveStartEnd"
                 />
-                <YAxis hide domain={['auto', 'auto']} />
+                <YAxis
+                  domain={['auto', 'auto']}
+                  orientation="right"
+                  tick={{ fill: '#71717a', fontSize: 10, fontFamily: 'var(--font-mono)' }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
+                />
                 <Tooltip
-                  contentStyle={{ borderRadius: '0px', border: '1px solid #27272a', background: '#09090b' }}
-                  labelStyle={{ color: '#a1a1aa', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-                  itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: 'bold' }}
-                  formatter={(value: number) => [`₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Net Worth']}
-                  labelFormatter={(label) => new Date(label).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  contentStyle={{ borderRadius: '0px', border: '1px solid #27272a', background: '#09090b', padding: '12px' }}
+                  labelStyle={{ color: '#a1a1aa', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}
+                  itemStyle={{ color: '#fff', fontSize: '16px', fontWeight: 'bold', fontFamily: 'var(--font-mono)' }}
+                  formatter={(value: number) => [`₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, '']}
+                  labelFormatter={(label) => new Date(label).toLocaleDateString('en-IN', {
+                    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+                    hour: 'numeric', minute: 'numeric'
+                  })}
                   cursor={{ stroke: '#00ff88', strokeWidth: 1, strokeDasharray: '4 4' }}
+                  animationDuration={200}
                 />
                 <Area
                   type="monotone"
